@@ -1,0 +1,88 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PVPC Plug Cost",
+        "description": "Create cost sensors for one smart plug. Add the integration again for each additional plug.",
+        "data": {
+          "name": "Name",
+          "power_entity": "Power sensor",
+          "price_entity": "PVPC price (sensor or input_number)",
+          "billing_day": "Billing day",
+          "scan_interval": "Sampling interval (s)"
+        },
+        "data_description": {
+          "price_entity": "Price obtained from the official PVPC Hourly Pricing integration sensor (`sensor.esios_pvpc`) or from an `input_number` with a fixed tariff in EUR/kWh."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "The selected entity does not exist.",
+      "invalid_power_unit": "The power sensor must use W or kW.",
+      "invalid_price_unit": "The price entity must use EUR/kWh."
+    },
+    "abort": {
+      "already_configured": "This power and price sensor combination is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PVPC Plug Cost options",
+        "description": "Change the source entities, billing day or sampling interval. Changing the billing day resets the current billing-period totals.",
+        "data": {
+          "power_entity": "Power sensor",
+          "price_entity": "PVPC price (sensor or input_number)",
+          "billing_day": "Billing day",
+          "scan_interval": "Sampling interval (s)"
+        },
+        "data_description": {
+          "price_entity": "Price obtained from the official PVPC Hourly Pricing integration sensor (`sensor.esios_pvpc`) or from an `input_number` with a fixed tariff in EUR/kWh."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "The selected entity does not exist.",
+      "invalid_power_unit": "The power sensor must use W or kW.",
+      "invalid_price_unit": "The price entity must use EUR/kWh.",
+      "already_configured": "This power and price sensor combination is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cost_hour": {
+        "name": "Cost current hour"
+      },
+      "energy_hour": {
+        "name": "Energy current hour"
+      },
+      "cost_year": {
+        "name": "Cost this year"
+      },
+      "energy_year": {
+        "name": "Energy this year"
+      },
+      "cost_today": {
+        "name": "Cost today"
+      },
+      "cost_month": {
+        "name": "Cost this billing period"
+      },
+      "energy_today": {
+        "name": "Energy today"
+      },
+      "energy_month": {
+        "name": "Energy this billing period"
+      },
+      "cost_rate": {
+        "name": "Current cost rate"
+      },
+      "energy_total": {
+        "name": "Total energy"
+      },
+      "cost_total": {
+        "name": "Total cost"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Pruebas y herramientas
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Empaquetado
+build/
+dist/
+*.egg-info/
+
+# Sistema / editores
+.DS_Store
+.idea/
+.vscode/
+*.code-workspace
+*.swp
+*.swo

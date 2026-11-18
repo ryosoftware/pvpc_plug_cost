@@ -1,0 +1,88 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PVPC Plug Cost",
+        "description": "Crea sensores de coste para un enchufe inteligente. Añade la integración de nuevo para cada enchufe adicional.",
+        "data": {
+          "name": "Nombre",
+          "power_entity": "Sensor de potencia",
+          "price_entity": "Precio PVPC (sensor o input_number)",
+          "billing_day": "Día de facturación",
+          "scan_interval": "Intervalo de muestreo (s)"
+        },
+        "data_description": {
+          "price_entity": "Precio obtenido del sensor de la integración oficial PVPC Hourly Pricing (`sensor.esios_pvpc`) o de un `input_number` con tarifa fija en €/kWh."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "La entidad seleccionada no existe.",
+      "invalid_power_unit": "El sensor de potencia debe usar W o kW.",
+      "invalid_price_unit": "La entidad de precio debe usar €/kWh."
+    },
+    "abort": {
+      "already_configured": "Esta combinación de sensor de potencia y precio ya está configurada."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones de PVPC Plug Cost",
+        "description": "Cambia las entidades de origen, el día de facturación o el intervalo de muestreo. Cambiar el día de facturación reinicia el acumulado del periodo actual.",
+        "data": {
+          "power_entity": "Sensor de potencia",
+          "price_entity": "Precio PVPC (sensor o input_number)",
+          "billing_day": "Día de facturación",
+          "scan_interval": "Intervalo de muestreo (s)"
+        },
+        "data_description": {
+          "price_entity": "Precio obtenido del sensor de la integración oficial PVPC Hourly Pricing (`sensor.esios_pvpc`) o de un `input_number` con tarifa fija en €/kWh."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "La entidad seleccionada no existe.",
+      "invalid_power_unit": "El sensor de potencia debe usar W o kW.",
+      "invalid_price_unit": "La entidad de precio debe usar €/kWh.",
+      "already_configured": "Esta combinación de sensor de potencia y precio ya está configurada."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "cost_hour": {
+        "name": "Coste de la hora actual"
+      },
+      "energy_hour": {
+        "name": "Energía de la hora actual"
+      },
+      "cost_year": {
+        "name": "Coste del año actual"
+      },
+      "energy_year": {
+        "name": "Energía del año actual"
+      },
+      "cost_today": {
+        "name": "Coste hoy"
+      },
+      "cost_month": {
+        "name": "Coste del periodo de facturación"
+      },
+      "energy_today": {
+        "name": "Energía hoy"
+      },
+      "energy_month": {
+        "name": "Energía del periodo de facturación"
+      },
+      "cost_rate": {
+        "name": "Coste actual por hora"
+      },
+      "energy_total": {
+        "name": "Energía total"
+      },
+      "cost_total": {
+        "name": "Coste total"
+      }
+    }
+  }
+}

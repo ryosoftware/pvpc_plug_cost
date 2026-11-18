@@ -1,0 +1,13 @@
+{
+  "domain": "pvpc_plug_cost",
+  "name": "PVPC Plug Cost",
+  "codeowners": ["@ryosoftware"],
+  "config_flow": true,
+  "documentation": "https://github.com/ryosoftware/pvpc_plug_cost",
+  "integration_type": "helper",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/ryosoftware/pvpc_plug_cost/issues",
+  "requirements": [],
+  "after_dependencies": ["pvpc_hourly_pricing", "sensor"],
+  "version": "1.0.0"
+}
