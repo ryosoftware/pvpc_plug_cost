@@ -18,6 +18,7 @@ Home Assistant custom integration `pvpc_plug_cost` for HACS. It calculates the v
 ```text
 custom_components/pvpc_plug_cost/
 ├── __init__.py          # setup, unload, removal, Store cleanup
+├── brand/               # icon.png, icon@2x.png
 ├── calculator.py        # pure math, no Home Assistant imports
 ├── config_flow.py       # user and options flows
 ├── const.py             # constants, units, defaults
@@ -26,6 +27,8 @@ custom_components/pvpc_plug_cost/
 ├── sensor.py            # cost and energy entities
 ├── strings.json
 └── translations/        # en.json, es.json
+.github/workflows/
+└── validate.yaml        # HACS validation action
 tests/
 ├── conftest.py
 ├── test_calculator.py
