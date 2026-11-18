@@ -131,3 +131,7 @@ python3 -m compileall custom_components
 ## Licencia
 
 MIT.
+
+## Home Assistant URL única: 
+
+https://my.home-assistant.io/redirect/marketplace_repository/?owner=ryosoftware&repository=https%3A%2F%2Fgithub.com%2Fryosoftware%2Fpvpc_plug_cost&category=integration
