@@ -65,6 +65,26 @@ SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
         value_fn=lambda manager: manager.hour_energy,
     ),
     PVPCCostSensorDescription(
+        key="cost_last_hour",
+        translation_key="cost_last_hour",
+        native_unit_of_measurement=CURRENCY_EURO,
+        device_class=SensorDeviceClass.MONETARY,
+        state_class=None,
+        suggested_display_precision=4,
+        icon="mdi:currency-eur",
+        value_fn=lambda manager: manager.last_hour_cost,
+    ),
+    PVPCCostSensorDescription(
+        key="energy_last_hour",
+        translation_key="energy_last_hour",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=None,
+        suggested_display_precision=3,
+        icon="mdi:lightning-bolt",
+        value_fn=lambda manager: manager.last_hour_energy,
+    ),
+    PVPCCostSensorDescription(
         key="cost_today",
         translation_key="cost_today",
         native_unit_of_measurement=CURRENCY_EURO,
@@ -241,6 +261,11 @@ class PVPCCostSensor(SensorEntity):
             "current_cost_rate_eur_h": _as_float(manager.current_cost_rate),
             "billing_day": manager.billing_day,
             "status": manager.status,
+            "last_hour_start": (
+                manager.last_hour_start.isoformat()
+                if manager.last_hour_start
+                else None
+            ),
             "last_sample": (
                 manager.last_sample.isoformat() if manager.last_sample else None
             ),

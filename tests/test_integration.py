@@ -92,6 +92,8 @@ async def test_setup_and_accumulation(hass) -> None:
     energy_entity_id = entities[f"{entry.entry_id}_energy_today"]
     hour_cost_entity_id = entities[f"{entry.entry_id}_cost_hour"]
     hour_energy_entity_id = entities[f"{entry.entry_id}_energy_hour"]
+    last_hour_cost_entity_id = entities[f"{entry.entry_id}_cost_last_hour"]
+    last_hour_energy_entity_id = entities[f"{entry.entry_id}_energy_last_hour"]
     year_cost_entity_id = entities[f"{entry.entry_id}_cost_year"]
     year_energy_entity_id = entities[f"{entry.entry_id}_energy_year"]
     total_cost_entity_id = entities[f"{entry.entry_id}_cost_total"]
@@ -112,6 +114,8 @@ async def test_setup_and_accumulation(hass) -> None:
     for entity_id in (
         hour_cost_entity_id,
         hour_energy_entity_id,
+        last_hour_cost_entity_id,
+        last_hour_energy_entity_id,
         year_cost_entity_id,
         year_energy_entity_id,
     ):
@@ -122,6 +126,8 @@ async def test_setup_and_accumulation(hass) -> None:
 
     assert Decimal(hass.states.get(hour_cost_entity_id).state) == Decimal("0.05")
     assert Decimal(hass.states.get(hour_energy_entity_id).state) == Decimal("0.5")
+    assert Decimal(hass.states.get(last_hour_cost_entity_id).state) == Decimal("0")
+    assert Decimal(hass.states.get(last_hour_energy_entity_id).state) == Decimal("0")
     assert Decimal(hass.states.get(year_cost_entity_id).state) == Decimal("0.05")
     assert Decimal(hass.states.get(year_energy_entity_id).state) == Decimal("0.5")
 
@@ -159,6 +165,18 @@ async def test_entity_ids_use_english_keys(hass) -> None:
     assert (
         entities[f"{entry.entry_id}_cost_month"].entity_id
         == "sensor.lavadora_cost_month"
+    )
+    assert (
+        entities[f"{entry.entry_id}_cost_last_hour"].entity_id
+        == "sensor.lavadora_cost_last_hour"
+    )
+    assert (
+        entities[f"{entry.entry_id}_energy_last_hour"].entity_id
+        == "sensor.lavadora_energy_last_hour"
+    )
+    assert (
+        entities[f"{entry.entry_id}_energy_last_hour"].original_name
+        == "Energía de la última hora completa"
     )
 
 
@@ -313,6 +331,115 @@ async def test_hour_accumulation_resets_at_hour_boundary(hass) -> None:
     assert manager.day_energy == Decimal("1.0")
 
 
+async def test_last_hour_accumulation_updates_at_hour_boundary(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    local_hour = dt_util.start_of_local_day(
+        dt_util.now() + timedelta(days=1)
+    ) + timedelta(hours=12)
+    start = dt_util.as_utc(local_hour - timedelta(minutes=30))
+    end = dt_util.as_utc(local_hour + timedelta(minutes=30))
+
+    manager._last_sample = start
+    manager._last_power_kw = Decimal("1")
+    manager._last_price = Decimal("0.10")
+    manager._max_gap = timedelta(hours=2)
+    manager._async_sample(end)
+    await hass.async_block_till_done()
+
+    assert manager.last_hour_start == local_hour - timedelta(hours=1)
+    assert manager.last_hour_energy == Decimal("0.5")
+    assert manager.last_hour_cost == Decimal("0.05")
+    assert manager.hour_start == local_hour
+    assert manager.hour_energy == Decimal("0.5")
+    assert manager.hour_cost == Decimal("0.05")
+
+
+async def test_last_hour_promotes_sample_at_hour_boundary(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    local_hour = dt_util.start_of_local_day(
+        dt_util.now() + timedelta(days=1)
+    ) + timedelta(hours=12)
+    start = dt_util.as_utc(local_hour - timedelta(minutes=30))
+
+    manager._last_sample = start
+    manager._last_power_kw = Decimal("1")
+    manager._last_price = Decimal("0.10")
+    manager._max_gap = timedelta(hours=2)
+    manager._async_sample(dt_util.as_utc(local_hour))
+    await hass.async_block_till_done()
+
+    assert manager.last_hour_start == local_hour - timedelta(hours=1)
+    assert manager.last_hour_energy == Decimal("0.5")
+    assert manager.last_hour_cost == Decimal("0.05")
+    assert manager.hour_start == local_hour
+    assert manager.hour_energy == Decimal("0")
+    assert manager.hour_cost == Decimal("0")
+
+
+async def test_last_hour_with_multi_hour_gap(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    local_hour = dt_util.start_of_local_day(
+        dt_util.now() + timedelta(days=1)
+    ) + timedelta(hours=12)
+    start = dt_util.as_utc(local_hour - timedelta(hours=2, minutes=30))
+    end = dt_util.as_utc(local_hour + timedelta(minutes=30))
+
+    manager._last_sample = start
+    manager._last_power_kw = Decimal("1")
+    manager._last_price = Decimal("0.10")
+    manager._max_gap = timedelta(hours=4)
+    manager._async_sample(end)
+    await hass.async_block_till_done()
+
+    assert manager.last_hour_start == local_hour - timedelta(hours=1)
+    assert manager.last_hour_energy == Decimal("1.0")
+    assert manager.last_hour_cost == Decimal("0.10")
+    assert manager.hour_start == local_hour
+    assert manager.hour_energy == Decimal("0.5")
+
+
+async def test_last_hour_is_persisted_and_restored(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    local_hour = dt_util.start_of_local_day(
+        dt_util.now() + timedelta(days=1)
+    ) + timedelta(hours=12)
+    start = dt_util.as_utc(local_hour - timedelta(minutes=30))
+    end = dt_util.as_utc(local_hour + timedelta(minutes=30))
+
+    manager._last_sample = start
+    manager._last_power_kw = Decimal("1")
+    manager._last_price = Decimal("0.10")
+    manager._max_gap = timedelta(hours=2)
+    manager._async_sample(end)
+    await hass.async_block_till_done()
+
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STOP)
+    await hass.async_block_till_done()
+
+    stored = await manager._store.async_load()
+    assert stored is not None
+    assert Decimal(stored["last_hour_energy"]) == Decimal("0.5")
+    assert Decimal(stored["last_hour_cost"]) == Decimal("0.05")
+    assert stored["last_hour_start"] == (local_hour - timedelta(hours=1)).isoformat()
+
+    manager._last_hour_start = None
+    manager._last_hour_energy = Decimal("0")
+    manager._last_hour_cost = Decimal("0")
+    await manager.async_load()
+
+    assert manager.last_hour_start == local_hour - timedelta(hours=1)
+    assert manager.last_hour_energy == Decimal("0.5")
+    assert manager.last_hour_cost == Decimal("0.05")
+
+
 async def test_year_accumulation_resets_at_new_year(hass) -> None:
     entry = await _setup_entry(hass)
     manager = entry.runtime_data
@@ -405,6 +532,9 @@ async def test_dst_fall_back_does_not_merge_hours(hass) -> None:
         await hass.async_block_till_done()
 
         assert manager.hour_energy == Decimal("0.5")
+        assert manager.last_hour_start == datetime(2027, 10, 31, 2, 0, tzinfo=tz)
+        assert manager.last_hour_energy == Decimal("1.0")
+        assert manager.last_hour_cost == Decimal("0.10")
         assert manager.day_energy == Decimal("2.0")
         assert manager.total_energy == Decimal("2.0")
     finally:

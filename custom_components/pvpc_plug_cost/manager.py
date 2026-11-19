@@ -81,6 +81,9 @@ class PVPCCostManager:
         self._hour_start: datetime | None = None
         self._hour_energy = ZERO
         self._hour_cost = ZERO
+        self._last_hour_start: datetime | None = None
+        self._last_hour_energy = ZERO
+        self._last_hour_cost = ZERO
         self._day_start: datetime | None = None
         self._day_energy = ZERO
         self._day_cost = ZERO
@@ -117,6 +120,24 @@ class PVPCCostManager:
         """Return the start of the current hour."""
 
         return self._hour_start
+
+    @property
+    def last_hour_energy(self) -> Decimal:
+        """Return energy accumulated during the last completed hour."""
+
+        return self._last_hour_energy
+
+    @property
+    def last_hour_cost(self) -> Decimal:
+        """Return cost accumulated during the last completed hour."""
+
+        return self._last_hour_cost
+
+    @property
+    def last_hour_start(self) -> datetime | None:
+        """Return the start of the last completed hour."""
+
+        return self._last_hour_start
 
     @property
     def day_energy(self) -> Decimal:
@@ -245,6 +266,13 @@ class PVPCCostManager:
             self._hour_start = self._parse_datetime(stored.get("hour_start"))
             self._hour_energy = to_decimal(stored.get("hour_energy")) or ZERO
             self._hour_cost = to_decimal(stored.get("hour_cost")) or ZERO
+            self._last_hour_start = self._parse_datetime(
+                stored.get("last_hour_start")
+            )
+            self._last_hour_energy = (
+                to_decimal(stored.get("last_hour_energy")) or ZERO
+            )
+            self._last_hour_cost = to_decimal(stored.get("last_hour_cost")) or ZERO
             self._day_start = self._parse_datetime(stored.get("day_start"))
             self._day_energy = to_decimal(stored.get("day_energy")) or ZERO
             self._day_cost = to_decimal(stored.get("day_cost")) or ZERO
@@ -402,6 +430,7 @@ class PVPCCostManager:
         self._last_sample = current
         self._last_power_kw = power
         self._last_price = price if price is not None else previous_price
+        self._advance_hour(local_current)
         self._ensure_periods(local_current)
         self._schedule_save()
         self._notify()
@@ -440,24 +469,41 @@ class PVPCCostManager:
             return None
         return dt_util.as_utc(value)
 
+    def _advance_hour(self, local_when: datetime) -> None:
+        """Advance the current hour and keep the last completed hour."""
+
+        hour = start_of_hour(local_when)
+        hour_key = self._start_key(hour)
+        current_key = self._start_key(self._hour_start)
+
+        if current_key is None:
+            self._hour_start = hour
+            self._hour_energy = ZERO
+            self._hour_cost = ZERO
+            return
+
+        if hour_key == current_key:
+            return
+
+        if hour_key is not None and hour_key > current_key:
+            self._last_hour_start = self._hour_start
+            self._last_hour_energy = self._hour_energy
+            self._last_hour_cost = self._hour_cost
+
+        self._hour_start = hour
+        self._hour_energy = ZERO
+        self._hour_cost = ZERO
+
     def _add_accumulation(self, when: datetime, result: EnergyCost) -> None:
         local_when = dt_util.as_local(when)
-        hour = start_of_hour(local_when)
+        self._advance_hour(local_when)
         day = start_of_day(local_when)
         month = billing_period_start(local_when, self.billing_day)
         year = start_of_year(local_when)
 
-        hour_key = dt_util.as_utc(hour)
         day_key = dt_util.as_utc(day)
         month_key = dt_util.as_utc(month)
         year_key = dt_util.as_utc(year)
-
-        hour_start_key = self._start_key(self._hour_start)
-        if hour_start_key is None or hour_key > hour_start_key:
-            self._hour_start = hour
-            self._hour_energy = ZERO
-            self._hour_cost = ZERO
-            hour_start_key = hour_key
 
         day_start_key = self._start_key(self._day_start)
         if day_start_key is None or day_key > day_start_key:
@@ -480,9 +526,8 @@ class PVPCCostManager:
             self._year_cost = ZERO
             year_start_key = year_key
 
-        if hour_key == hour_start_key:
-            self._hour_energy += result.energy_kwh
-            self._hour_cost += result.cost_eur
+        self._hour_energy += result.energy_kwh
+        self._hour_cost += result.cost_eur
 
         if day_key == day_start_key:
             self._day_energy += result.energy_kwh
@@ -547,6 +592,11 @@ class PVPCCostManager:
             "hour_start": self._hour_start.isoformat() if self._hour_start else None,
             "hour_energy": str(self._hour_energy),
             "hour_cost": str(self._hour_cost),
+            "last_hour_start": (
+                self._last_hour_start.isoformat() if self._last_hour_start else None
+            ),
+            "last_hour_energy": str(self._last_hour_energy),
+            "last_hour_cost": str(self._last_hour_cost),
             "day_start": self._day_start.isoformat() if self._day_start else None,
             "day_energy": str(self._day_energy),
             "day_cost": str(self._day_cost),

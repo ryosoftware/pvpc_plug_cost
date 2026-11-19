@@ -56,6 +56,12 @@
       "energy_hour": {
         "name": "Energy current hour"
       },
+      "cost_last_hour": {
+        "name": "Cost last complete hour"
+      },
+      "energy_last_hour": {
+        "name": "Energy last complete hour"
+      },
       "cost_year": {
         "name": "Cost this year"
       },

@@ -67,6 +67,8 @@ Para una entrada llamada `Lavadora`:
 |---|---|
 | `sensor.lavadora_cost_hour` | Coste variable acumulado en la hora en curso |
 | `sensor.lavadora_energy_hour` | Energía acumulada en la hora en curso |
+| `sensor.lavadora_cost_last_hour` | Coste variable de la última hora completa |
+| `sensor.lavadora_energy_last_hour` | Energía de la última hora completa |
 | `sensor.lavadora_cost_today` | Coste variable acumulado hoy |
 | `sensor.lavadora_cost_month` | Coste variable del periodo de facturación |
 | `sensor.lavadora_energy_today` | Energía acumulada hoy |
@@ -79,11 +81,13 @@ Para una entrada llamada `Lavadora`:
 
 El prefijo depende del nombre del dispositivo. Los `entity_id` usan claves en inglés (`cost_today`, `energy_total`, etc.) para que sean estables e independientes del idioma de Home Assistant; los nombres visibles sí se traducen. Las entradas creadas con versiones anteriores conservan los `entity_id` que ya tenían.
 
-Cada sensor incluye atributos de diagnóstico: entidad de potencia, entidad de precio, potencia actual, precio actual, coste instantáneo, día de facturación, estado y última muestra.
+`cost_last_hour` y `energy_last_hour` muestran la hora de reloj anterior: a las 10:25, el periodo de 09:00 a 10:00. Solo avanzan cuando Home Assistant observa el cambio de hora mientras está funcionando; si estuvo parado al cruzar la hora, conservan la última hora que sí se completó en marcha. El atributo `last_hour_start` indica el inicio del periodo mostrado.
+
+Cada sensor incluye atributos de diagnóstico: entidad de potencia, entidad de precio, potencia actual, precio actual, coste instantáneo, día de facturación, estado, última muestra e inicio de la última hora completa.
 
 ## Dashboard de Energía
 
-Los sensores recomendados para el Dashboard son `energy_total` y `cost_total`, porque son acumulados monotónicos y no se reinician. Los sensores de energía y coste por hora, día, periodo de facturación y año son informativos y no generan estadísticas de largo plazo. Si actualizas desde una versión anterior, Home Assistant puede mostrar un aviso `state_class_removed` para esos sensores; es esperado.
+Los sensores recomendados para el Dashboard son `energy_total` y `cost_total`, porque son acumulados monotónicos y no se reinician. Los sensores de energía y coste por hora, última hora, día, periodo de facturación y año son informativos y no generan estadísticas de largo plazo. Si actualizas desde una versión anterior, Home Assistant puede mostrar un aviso `state_class_removed` para esos sensores; es esperado.
 
 ## Cálculo
 
