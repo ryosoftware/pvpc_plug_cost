@@ -30,28 +30,22 @@ class CalculatorTest(unittest.TestCase):
         end = datetime(2026, 1, 1, 0, 30, tzinfo=timezone.utc)
 
         result = calculator.accumulate_segment(
-            Decimal("1"), Decimal("1"), Decimal("0.10"), start, end
+            Decimal("1"), Decimal("0.10"), start, end
         )
 
         self.assertEqual(result.energy_kwh, Decimal("0.5"))
         self.assertEqual(result.cost_eur, Decimal("0.05"))
 
-    def test_trapezoidal_power(self) -> None:
+    def test_left_power_uses_start_value(self) -> None:
         start = datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc)
         end = datetime(2026, 1, 1, 1, 0, tzinfo=timezone.utc)
 
         result = calculator.accumulate_segment(
-            Decimal("0"), Decimal("2"), Decimal("0.20"), start, end
+            Decimal("2"), Decimal("0.20"), start, end
         )
 
-        self.assertEqual(result.energy_kwh, Decimal("1"))
-        self.assertEqual(result.cost_eur, Decimal("0.20"))
-
-    def test_interpolate_power(self) -> None:
-        self.assertEqual(
-            calculator.interpolate_power(Decimal("0"), Decimal("10"), Decimal("0.5")),
-            Decimal("5.0"),
-        )
+        self.assertEqual(result.energy_kwh, Decimal("2"))
+        self.assertEqual(result.cost_eur, Decimal("0.40"))
 
     def test_invalid_decimal(self) -> None:
         self.assertIsNone(calculator.to_decimal("unavailable"))

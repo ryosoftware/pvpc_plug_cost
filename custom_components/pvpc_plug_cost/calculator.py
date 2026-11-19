@@ -34,28 +34,19 @@ def to_decimal(value: Any) -> Decimal | None:
     return result
 
 
-def interpolate_power(
-    start_kw: Decimal, end_kw: Decimal, fraction: Decimal
-) -> Decimal:
-    """Interpolate power at a point between two samples."""
-
-    return start_kw + (end_kw - start_kw) * fraction
-
-
 def accumulate_segment(
-    power_start_kw: Decimal,
-    power_end_kw: Decimal,
+    power_kw: Decimal,
     price_eur_kwh: Decimal,
     start: datetime,
     end: datetime,
 ) -> EnergyCost:
-    """Integrate power over a segment and multiply by the energy price."""
+    """Integrate the power at the start of a segment over that segment."""
 
     seconds = Decimal(str((end - start).total_seconds()))
     if seconds <= ZERO:
         return EnergyCost(ZERO, ZERO)
 
-    energy_kwh = (power_start_kw + power_end_kw) / 2 * seconds / SECONDS_PER_HOUR
+    energy_kwh = power_kw * seconds / SECONDS_PER_HOUR
     return EnergyCost(energy_kwh, energy_kwh * price_eur_kwh)
 
 

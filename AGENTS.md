@@ -45,7 +45,7 @@ README.md
 
 Pure calculation module with no Home Assistant imports. Keep it this way so it can be tested without Home Assistant.
 
-- `accumulate_segment()` integrates power over a time segment using the trapezoidal rule and multiplies by the price.
+- `accumulate_segment()` integrates the power at the start of each segment using the left/step method and multiplies by the price at the start of the segment.
 - `billing_period_start()` and `next_billing_period_start()` implement the configurable billing day.
 - Billing days 29–31 are clamped to the last day of the month.
 - `period_boundaries()` returns day and billing-period boundaries that must split an accumulation interval.
@@ -57,6 +57,7 @@ One `PVPCCostManager` instance per config entry.
 - Reads power and price states.
 - Converts power to kW with `PowerConverter`.
 - Samples on power/price state changes, every configured interval, and every hour.
+- Uses the power and price from the start of the sampling interval for every subsegment; new readings apply from the next sample.
 - Uses UTC for elapsed-time math and local time for hour, day, month and year boundaries. Hour boundaries support whole-hour and half-hour offsets and DST folds. Period-start comparisons are converted to UTC so DST folds are handled correctly.
 - Stores `hour_*`, `last_hour_*`, `day_*`, `month_*`, `year_*` and `total_*` totals plus period starts.
 - `last_hour_*` is promoted only when the hour rollover is observed while running; it is persisted and restored but hours spanning downtime are not reconstructed.

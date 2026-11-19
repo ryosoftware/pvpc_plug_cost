@@ -240,7 +240,6 @@ async def test_midnight_split_and_price_change(hass) -> None:
         dt_util.now() + timedelta(days=1)
     )
     start = dt_util.as_utc(local_midnight - timedelta(minutes=10))
-    end = dt_util.as_utc(local_midnight + timedelta(minutes=10))
 
     manager._last_sample = start
     manager._last_power_kw = Decimal("1")
@@ -252,7 +251,11 @@ async def test_midnight_split_and_price_change(hass) -> None:
         {"unit_of_measurement": "€/kWh"},
     )
 
-    manager._async_sample(end)
+    manager._async_sample(dt_util.as_utc(local_midnight))
+    await hass.async_block_till_done()
+    manager._async_sample(
+        dt_util.as_utc(local_midnight + timedelta(minutes=10))
+    )
     await hass.async_block_till_done()
 
     assert manager.day_start == local_midnight
@@ -329,6 +332,74 @@ async def test_hour_accumulation_resets_at_hour_boundary(hass) -> None:
     assert manager.hour_energy == Decimal("0.5")
     assert manager.hour_cost == Decimal("0.05")
     assert manager.day_energy == Decimal("1.0")
+
+
+async def test_left_method_uses_start_power(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    local_start = dt_util.start_of_local_day(
+        dt_util.now() + timedelta(days=1)
+    ) + timedelta(hours=12)
+    start = dt_util.as_utc(local_start)
+
+    manager._last_sample = start
+    manager._last_power_kw = Decimal("1")
+    manager._last_price = Decimal("0.10")
+    manager._max_gap = timedelta(hours=1)
+    hass.states.async_set(
+        "sensor.plug_power",
+        "2000",
+        {"unit_of_measurement": "W", "device_class": "power"},
+    )
+
+    manager._async_sample(start + timedelta(minutes=30))
+    await hass.async_block_till_done()
+
+    assert manager.day_energy == Decimal("0.5")
+    assert manager.day_cost == Decimal("0.05")
+    assert manager.total_energy == Decimal("0.5")
+    assert manager.current_power_kw == Decimal("2")
+
+
+async def test_left_method_uses_start_values_across_hour_boundary(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    local_hour = dt_util.start_of_local_day(
+        dt_util.now() + timedelta(days=1)
+    ) + timedelta(hours=12)
+    start = dt_util.as_utc(local_hour - timedelta(minutes=30))
+    end = dt_util.as_utc(local_hour + timedelta(minutes=30))
+
+    manager._last_sample = start
+    manager._last_power_kw = Decimal("1")
+    manager._last_price = Decimal("0.10")
+    manager._max_gap = timedelta(hours=2)
+
+    hass.states.async_set(
+        "sensor.plug_power",
+        "2000",
+        {"unit_of_measurement": "W", "device_class": "power"},
+    )
+    hass.states.async_set(
+        DEFAULT_PRICE_ENTITY,
+        "0.20",
+        {"unit_of_measurement": "€/kWh"},
+    )
+
+    manager._async_sample(end)
+    await hass.async_block_till_done()
+
+    assert manager.last_hour_start == local_hour - timedelta(hours=1)
+    assert manager.last_hour_energy == Decimal("0.5")
+    assert manager.last_hour_cost == Decimal("0.05")
+    assert manager.hour_energy == Decimal("0.5")
+    assert manager.hour_cost == Decimal("0.05")
+    assert manager.day_energy == Decimal("1.0")
+    assert manager.day_cost == Decimal("0.10")
+    assert manager.current_power_kw == Decimal("2")
+    assert manager.current_price == Decimal("0.20")
 
 
 async def test_last_hour_accumulation_updates_at_hour_boundary(hass) -> None:

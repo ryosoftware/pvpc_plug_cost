@@ -94,11 +94,11 @@ Los sensores recomendados para el Dashboard son `energy_total` y `cost_total`, p
 Para cada intervalo entre muestras:
 
 ```text
-energía = potencia media (kW) × tiempo (h)
-coste   = energía (kWh) × precio PVPC (€/kWh)
+energía = potencia al inicio del tramo (kW) × tiempo (h)
+coste   = energía (kWh) × precio al inicio del tramo (€/kWh)
 ```
 
-La potencia se integra con método trapezoidal. Los intervalos se dividen en los cambios de hora, medianoche y inicio del periodo de facturación para asignar correctamente energía y coste a cada contador.
+La potencia y el precio se tratan como señales en escalera: se usa el último valor conocido al inicio de cada tramo y se mantiene hasta la siguiente lectura. Los intervalos se dividen en los cambios de hora, medianoche y inicio del periodo de facturación para asignar correctamente energía y coste a cada contador. Cada subtramo usa la potencia y el precio del inicio del intervalo de muestreo.
 
 Los acumulados empiezan a contar desde el momento en que se configura la integración. No se reconstruye el consumo anterior a la instalación. Tras actualizar a una versión con acumulados horarios, anuales o totales, estos empiezan en cero y no reconstruyen periodos anteriores.
 
@@ -106,7 +106,7 @@ Los acumulados empiezan a contar desde el momento en que se configura la integra
 
 - El coste calculado es **solo el término variable de energía PVPC**. No incluye impuestos, peajes, término de potencia, alquiler de contador ni otros cargos fijos.
 - La precisión depende de la frecuencia con la que el enchufe actualiza la potencia y del intervalo de muestreo.
-- La potencia se interpola linealmente entre lecturas. Si el enchufe solo informa cambios, el coste puede sobreestimarse o subestimarse ligeramente.
+- La potencia y el precio se mantienen hasta la siguiente lectura; no se interpolan. Si el enchufe o el precio cambian con poco detalle, el coste puede desviarse ligeramente, como mucho alrededor de un intervalo de muestreo por cada cambio.
 - No se recupera el consumo ocurrido mientras Home Assistant o el enchufe estuvieron desconectados.
 - No se crea un sensor de total agregado de varios enchufes. Si lo necesitas, puedes crear un sensor de plantilla que sume los sensores de coste individuales.
 

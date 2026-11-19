@@ -33,7 +33,6 @@ from .calculator import (
     ZERO,
     accumulate_segment,
     billing_period_start,
-    interpolate_power,
     period_boundaries,
     start_of_day,
     start_of_hour,
@@ -394,38 +393,22 @@ class PVPCCostManager:
             self.billing_day,
         )
         boundaries = [dt_util.as_utc(boundary) for boundary in local_boundaries]
-        total_seconds = Decimal(str(elapsed))
         cursor = self._last_sample
-        power_at_cursor = previous_power
-        segment_price = previous_price
 
         for boundary in [*boundaries, current]:
             segment_seconds = Decimal(str((boundary - cursor).total_seconds()))
             if segment_seconds <= ZERO:
                 continue
 
-            if boundary == current:
-                power_at_boundary = power
-            else:
-                elapsed_fraction = Decimal(
-                    str((boundary - self._last_sample).total_seconds())
-                ) / total_seconds
-                power_at_boundary = interpolate_power(
-                    previous_power, power, elapsed_fraction
-                )
-
             result = accumulate_segment(
-                power_at_cursor,
-                power_at_boundary,
-                segment_price,
+                previous_power,
+                previous_price,
                 cursor,
                 boundary,
             )
             self._add_accumulation(cursor, result)
 
             cursor = boundary
-            power_at_cursor = power_at_boundary
-            segment_price = price if price is not None else previous_price
 
         self._last_sample = current
         self._last_power_kw = power
