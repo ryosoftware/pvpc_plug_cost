@@ -135,6 +135,33 @@ async def test_setup_and_accumulation(hass) -> None:
     assert "last_reset" not in total_energy_state.attributes
 
 
+async def test_entity_ids_use_english_keys(hass) -> None:
+    hass.config.language = "es"
+    entry = await _setup_entry(hass, title="Lavadora")
+
+    registry = er.async_get(hass)
+    entities = {
+        entity.unique_id: entity
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+
+    assert (
+        entities[f"{entry.entry_id}_cost_today"].entity_id
+        == "sensor.lavadora_cost_today"
+    )
+    assert (
+        entities[f"{entry.entry_id}_cost_today"].original_name == "Coste hoy"
+    )
+    assert (
+        entities[f"{entry.entry_id}_energy_total"].entity_id
+        == "sensor.lavadora_energy_total"
+    )
+    assert (
+        entities[f"{entry.entry_id}_cost_month"].entity_id
+        == "sensor.lavadora_cost_month"
+    )
+
+
 async def test_multiple_plugs_are_independent(hass) -> None:
     entry_one = await _setup_entry(
         hass, "sensor.plug_one_power", "Plug one"

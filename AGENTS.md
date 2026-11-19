@@ -86,6 +86,8 @@ Eleven entities:
 
 `cost_rate` is disabled by default.
 
+Entity IDs use the language-independent description key (`cost_hour`, `cost_today`, etc.) via `suggested_object_id`, so new installations get the same entity IDs regardless of the Home Assistant language. Friendly names remain translated. Existing entity IDs are not migrated.
+
 Important: invalid Material Design Icons names render as no icon. Do not use `mdi:calendar-currency` or `mdi:calendar-lightning`; they do not exist. Verify new icon names before using them.
 
 Period sensors are informational: they have no `state_class` or `last_reset`, so they do not generate long-term statistics. Lifetime sensors do not reset; `energy_total` uses `total_increasing` and `cost_total` uses `total` because HA does not allow `monetary` with `total_increasing`. The Energy Dashboard should use `energy_total` and `cost_total`.

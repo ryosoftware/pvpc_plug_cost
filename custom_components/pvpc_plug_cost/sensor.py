@@ -208,6 +208,12 @@ class PVPCCostSensor(SensorEntity):
                 model="PVPC cost tracker",
             )
 
+    @property
+    def suggested_object_id(self) -> str | None:
+        """Return the language-independent object id for the entity."""
+
+        return self._description.key
+
     async def async_added_to_hass(self) -> None:
         """Subscribe to manager updates."""
 

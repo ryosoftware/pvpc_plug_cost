@@ -65,19 +65,19 @@ Para una entrada llamada `Lavadora`:
 
 | Entidad | Descripción |
 |---|---|
-| `sensor.lavadora_coste_de_la_hora_actual` | Coste variable acumulado en la hora en curso |
-| `sensor.lavadora_energia_de_la_hora_actual` | Energía acumulada en la hora en curso |
-| `sensor.lavadora_coste_hoy` | Coste variable acumulado hoy |
-| `sensor.lavadora_coste_del_periodo_de_facturacion` | Coste variable del periodo de facturación |
-| `sensor.lavadora_energia_hoy` | Energía acumulada hoy |
-| `sensor.lavadora_energia_del_periodo_de_facturacion` | Energía del periodo de facturación |
-| `sensor.lavadora_coste_del_ano_actual` | Coste variable acumulado en el año en curso |
-| `sensor.lavadora_energia_del_ano_actual` | Energía acumulada en el año en curso |
-| `sensor.lavadora_energia_total` | Energía total acumulada desde la instalación |
-| `sensor.lavadora_coste_total` | Coste variable total acumulado desde la instalación |
-| `sensor.lavadora_coste_actual_por_hora` | Coste instantáneo €/h, deshabilitado por defecto |
+| `sensor.lavadora_cost_hour` | Coste variable acumulado en la hora en curso |
+| `sensor.lavadora_energy_hour` | Energía acumulada en la hora en curso |
+| `sensor.lavadora_cost_today` | Coste variable acumulado hoy |
+| `sensor.lavadora_cost_month` | Coste variable del periodo de facturación |
+| `sensor.lavadora_energy_today` | Energía acumulada hoy |
+| `sensor.lavadora_energy_month` | Energía del periodo de facturación |
+| `sensor.lavadora_cost_year` | Coste variable acumulado en el año en curso |
+| `sensor.lavadora_energy_year` | Energía acumulada en el año en curso |
+| `sensor.lavadora_energy_total` | Energía total acumulada desde la instalación |
+| `sensor.lavadora_cost_total` | Coste variable total acumulado desde la instalación |
+| `sensor.lavadora_cost_rate` | Coste instantáneo €/h, deshabilitado por defecto |
 
-Los nombres finales pueden variar según el nombre del dispositivo y las traducciones de Home Assistant.
+El prefijo depende del nombre del dispositivo. Los `entity_id` usan claves en inglés (`cost_today`, `energy_total`, etc.) para que sean estables e independientes del idioma de Home Assistant; los nombres visibles sí se traducen. Las entradas creadas con versiones anteriores conservan los `entity_id` que ya tenían.
 
 Cada sensor incluye atributos de diagnóstico: entidad de potencia, entidad de precio, potencia actual, precio actual, coste instantáneo, día de facturación, estado y última muestra.
 
