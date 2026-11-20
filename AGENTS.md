@@ -36,7 +36,8 @@ tests/
 hacs.json
 pytest.ini
 requirements-dev.txt
-README.md
+README.md               # Spanish README
+README.en.md            # English README
 ```
 
 ## Architecture
@@ -74,23 +75,23 @@ Thirteen entities:
 
 | Key | Unit | Device class | State class | Icon |
 |---|---|---|---|---|
-| `cost_hour` | € | `monetary` | none | `mdi:currency-eur` |
-| `energy_hour` | kWh | `energy` | none | `mdi:lightning-bolt` |
+| `cost_current_hour` | € | `monetary` | none | `mdi:currency-eur` |
+| `energy_current_hour` | kWh | `energy` | none | `mdi:lightning-bolt` |
 | `cost_last_hour` | € | `monetary` | none | `mdi:currency-eur` |
 | `energy_last_hour` | kWh | `energy` | none | `mdi:lightning-bolt` |
 | `cost_today` | € | `monetary` | none | `mdi:currency-eur` |
-| `cost_month` | € | `monetary` | none | `mdi:currency-eur` |
+| `cost_current_billing_period` | € | `monetary` | none | `mdi:currency-eur` |
 | `energy_today` | kWh | `energy` | none | `mdi:lightning-bolt` |
-| `energy_month` | kWh | `energy` | none | `mdi:lightning-bolt` |
-| `cost_year` | € | `monetary` | none | `mdi:currency-eur` |
-| `energy_year` | kWh | `energy` | none | `mdi:lightning-bolt` |
+| `energy_current_billing_period` | kWh | `energy` | none | `mdi:lightning-bolt` |
+| `cost_current_year` | € | `monetary` | none | `mdi:currency-eur` |
+| `energy_current_year` | kWh | `energy` | none | `mdi:lightning-bolt` |
 | `energy_total` | kWh | `energy` | `total_increasing` | `mdi:lightning-bolt` |
 | `cost_total` | € | `monetary` | `total` | `mdi:currency-eur` |
 | `cost_rate` | €/h | none | `measurement` | `mdi:cash-clock` |
 
 `cost_rate` is disabled by default.
 
-Entity IDs use the language-independent description key (`cost_hour`, `cost_today`, etc.) via `suggested_object_id`, so new installations get the same entity IDs regardless of the Home Assistant language. Friendly names remain translated. Existing entity IDs are not migrated.
+Entity IDs use the language-independent description key (`cost_current_hour`, `cost_today`, etc.) via `suggested_object_id`, so new installations get the same entity IDs regardless of the Home Assistant language. Friendly names remain translated.
 
 `cost_last_hour` and `energy_last_hour` show the previous clock hour (for example, at 10:25 the 09:00–10:00 period). They advance only when the rollover is observed while running; they are persisted and restored but do not reconstruct hours spanning downtime.
 

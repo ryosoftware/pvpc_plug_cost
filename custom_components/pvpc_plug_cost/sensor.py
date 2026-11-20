@@ -45,8 +45,8 @@ class PVPCCostSensorDescription:
 
 SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
     PVPCCostSensorDescription(
-        key="cost_hour",
-        translation_key="cost_hour",
+        key="cost_current_hour",
+        translation_key="cost_current_hour",
         native_unit_of_measurement=CURRENCY_EURO,
         device_class=SensorDeviceClass.MONETARY,
         state_class=None,
@@ -55,8 +55,8 @@ SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
         value_fn=lambda manager: manager.hour_cost,
     ),
     PVPCCostSensorDescription(
-        key="energy_hour",
-        translation_key="energy_hour",
+        key="energy_current_hour",
+        translation_key="energy_current_hour",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=None,
@@ -95,8 +95,8 @@ SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
         value_fn=lambda manager: manager.day_cost,
     ),
     PVPCCostSensorDescription(
-        key="cost_month",
-        translation_key="cost_month",
+        key="cost_current_billing_period",
+        translation_key="cost_current_billing_period",
         native_unit_of_measurement=CURRENCY_EURO,
         device_class=SensorDeviceClass.MONETARY,
         state_class=None,
@@ -115,8 +115,8 @@ SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
         value_fn=lambda manager: manager.day_energy,
     ),
     PVPCCostSensorDescription(
-        key="energy_month",
-        translation_key="energy_month",
+        key="energy_current_billing_period",
+        translation_key="energy_current_billing_period",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=None,
@@ -125,8 +125,8 @@ SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
         value_fn=lambda manager: manager.month_energy,
     ),
     PVPCCostSensorDescription(
-        key="cost_year",
-        translation_key="cost_year",
+        key="cost_current_year",
+        translation_key="cost_current_year",
         native_unit_of_measurement=CURRENCY_EURO,
         device_class=SensorDeviceClass.MONETARY,
         state_class=None,
@@ -135,8 +135,8 @@ SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
         value_fn=lambda manager: manager.year_cost,
     ),
     PVPCCostSensorDescription(
-        key="energy_year",
-        translation_key="energy_year",
+        key="energy_current_year",
+        translation_key="energy_current_year",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=None,

@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "PVPC Plug Cost",
-        "description": "Create cost sensors for one smart plug. Add the integration again for each additional plug.",
+        "description": "Create cost and energy sensors for one smart plug. Add the integration again for each additional plug.",
         "data": {
           "name": "Name",
           "power_entity": "Power sensor",
@@ -12,14 +12,14 @@
           "scan_interval": "Sampling interval (s)"
         },
         "data_description": {
-          "price_entity": "Price obtained from the official PVPC Hourly Pricing integration sensor (`sensor.esios_pvpc`) or from an `input_number` with a fixed tariff in EUR/kWh."
+          "price_entity": "Price obtained from the official PVPC Hourly Pricing integration sensor (`sensor.esios_pvpc`) or from an `input_number` with a fixed tariff in €/kWh or EUR/kWh."
         }
       }
     },
     "error": {
       "entity_not_found": "The selected entity does not exist.",
       "invalid_power_unit": "The power sensor must use W or kW.",
-      "invalid_price_unit": "The price entity must use EUR/kWh."
+      "invalid_price_unit": "The price entity must use €/kWh or EUR/kWh."
     },
     "abort": {
       "already_configured": "This power and price sensor combination is already configured."
@@ -37,57 +37,57 @@
           "scan_interval": "Sampling interval (s)"
         },
         "data_description": {
-          "price_entity": "Price obtained from the official PVPC Hourly Pricing integration sensor (`sensor.esios_pvpc`) or from an `input_number` with a fixed tariff in EUR/kWh."
+          "price_entity": "Price obtained from the official PVPC Hourly Pricing integration sensor (`sensor.esios_pvpc`) or from an `input_number` with a fixed tariff in €/kWh or EUR/kWh."
         }
       }
     },
     "error": {
       "entity_not_found": "The selected entity does not exist.",
       "invalid_power_unit": "The power sensor must use W or kW.",
-      "invalid_price_unit": "The price entity must use EUR/kWh.",
+      "invalid_price_unit": "The price entity must use €/kWh or EUR/kWh.",
       "already_configured": "This power and price sensor combination is already configured."
     }
   },
   "entity": {
     "sensor": {
-      "cost_hour": {
-        "name": "Cost current hour"
+      "cost_current_hour": {
+        "name": "Current hour cost"
       },
-      "energy_hour": {
-        "name": "Energy current hour"
+      "energy_current_hour": {
+        "name": "Current hour energy"
       },
       "cost_last_hour": {
-        "name": "Cost last complete hour"
+        "name": "Last complete hour cost"
       },
       "energy_last_hour": {
-        "name": "Energy last complete hour"
+        "name": "Last complete hour energy"
       },
-      "cost_year": {
-        "name": "Cost this year"
+      "cost_current_year": {
+        "name": "Current year cost"
       },
-      "energy_year": {
-        "name": "Energy this year"
+      "energy_current_year": {
+        "name": "Current year energy"
       },
       "cost_today": {
-        "name": "Cost today"
-      },
-      "cost_month": {
-        "name": "Cost this billing period"
+        "name": "Today's cost"
       },
       "energy_today": {
-        "name": "Energy today"
+        "name": "Today's energy"
       },
-      "energy_month": {
-        "name": "Energy this billing period"
+      "cost_current_billing_period": {
+        "name": "Current billing period cost"
       },
-      "cost_rate": {
-        "name": "Current cost rate"
+      "energy_current_billing_period": {
+        "name": "Current billing period energy"
       },
       "energy_total": {
         "name": "Total energy"
       },
       "cost_total": {
         "name": "Total cost"
+      },
+      "cost_rate": {
+        "name": "Instantaneous cost rate"
       }
     }
   }

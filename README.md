@@ -1,5 +1,7 @@
 # PVPC Plug Cost
 
+[English](README.en.md) | Español
+
 Integración personalizada para Home Assistant que calcula el coste variable de la energía consumida por un enchufe inteligente usando el precio horario PVPC de España.
 
 Crea, para cada enchufe, sensores de coste y energía con acumulado diario y por periodo de facturación.
@@ -65,21 +67,21 @@ Para una entrada llamada `Lavadora`:
 
 | Entidad | Descripción |
 |---|---|
-| `sensor.lavadora_cost_hour` | Coste variable acumulado en la hora en curso |
-| `sensor.lavadora_energy_hour` | Energía acumulada en la hora en curso |
+| `sensor.lavadora_cost_current_hour` | Coste variable acumulado en la hora en curso |
+| `sensor.lavadora_energy_current_hour` | Energía acumulada en la hora en curso |
 | `sensor.lavadora_cost_last_hour` | Coste variable de la última hora completa |
 | `sensor.lavadora_energy_last_hour` | Energía de la última hora completa |
 | `sensor.lavadora_cost_today` | Coste variable acumulado hoy |
-| `sensor.lavadora_cost_month` | Coste variable del periodo de facturación |
+| `sensor.lavadora_cost_current_billing_period` | Coste variable del periodo de facturación |
 | `sensor.lavadora_energy_today` | Energía acumulada hoy |
-| `sensor.lavadora_energy_month` | Energía del periodo de facturación |
-| `sensor.lavadora_cost_year` | Coste variable acumulado en el año en curso |
-| `sensor.lavadora_energy_year` | Energía acumulada en el año en curso |
+| `sensor.lavadora_energy_current_billing_period` | Energía del periodo de facturación |
+| `sensor.lavadora_cost_current_year` | Coste variable acumulado en el año en curso |
+| `sensor.lavadora_energy_current_year` | Energía acumulada en el año en curso |
 | `sensor.lavadora_energy_total` | Energía total acumulada desde la instalación |
 | `sensor.lavadora_cost_total` | Coste variable total acumulado desde la instalación |
 | `sensor.lavadora_cost_rate` | Coste instantáneo €/h, deshabilitado por defecto |
 
-El prefijo depende del nombre del dispositivo. Los `entity_id` usan claves en inglés (`cost_today`, `energy_total`, etc.) para que sean estables e independientes del idioma de Home Assistant; los nombres visibles sí se traducen. Las entradas creadas con versiones anteriores conservan los `entity_id` que ya tenían.
+El prefijo depende del nombre del dispositivo. Los `entity_id` usan claves en inglés (`cost_current_hour`, `energy_total`, etc.) para que sean estables e independientes del idioma de Home Assistant; los nombres visibles sí se traducen.
 
 `cost_last_hour` y `energy_last_hour` muestran la hora de reloj anterior: a las 10:25, el periodo de 09:00 a 10:00. Solo avanzan cuando Home Assistant observa el cambio de hora mientras está funcionando; si estuvo parado al cruzar la hora, conservan la última hora que sí se completó en marcha. El atributo `last_hour_start` indica el inicio del periodo mostrado.
 
@@ -87,7 +89,7 @@ Cada sensor incluye atributos de diagnóstico: entidad de potencia, entidad de p
 
 ## Dashboard de Energía
 
-Los sensores recomendados para el Dashboard son `energy_total` y `cost_total`, porque son acumulados monotónicos y no se reinician. Los sensores de energía y coste por hora, última hora, día, periodo de facturación y año son informativos y no generan estadísticas de largo plazo. Si actualizas desde una versión anterior, Home Assistant puede mostrar un aviso `state_class_removed` para esos sensores; es esperado.
+Los sensores recomendados para el Dashboard son `energy_total` y `cost_total`, porque son acumulados monotónicos y no se reinician. Los sensores de energía y coste por hora, última hora, día, periodo de facturación y año son informativos y no generan estadísticas de largo plazo.
 
 ## Cálculo
 
@@ -100,7 +102,7 @@ coste   = energía (kWh) × precio al inicio del tramo (€/kWh)
 
 La potencia y el precio se tratan como señales en escalera: se usa el último valor conocido al inicio de cada tramo y se mantiene hasta la siguiente lectura. Los intervalos se dividen en los cambios de hora, medianoche y inicio del periodo de facturación para asignar correctamente energía y coste a cada contador. Cada subtramo usa la potencia y el precio del inicio del intervalo de muestreo.
 
-Los acumulados empiezan a contar desde el momento en que se configura la integración. No se reconstruye el consumo anterior a la instalación. Tras actualizar a una versión con acumulados horarios, anuales o totales, estos empiezan en cero y no reconstruyen periodos anteriores.
+Los acumulados empiezan a contar desde el momento en que se configura la integración. No se reconstruye el consumo anterior a la instalación.
 
 ## Limitaciones
 

@@ -90,12 +90,12 @@ async def test_setup_and_accumulation(hass) -> None:
 
     cost_entity_id = entities[f"{entry.entry_id}_cost_today"]
     energy_entity_id = entities[f"{entry.entry_id}_energy_today"]
-    hour_cost_entity_id = entities[f"{entry.entry_id}_cost_hour"]
-    hour_energy_entity_id = entities[f"{entry.entry_id}_energy_hour"]
+    hour_cost_entity_id = entities[f"{entry.entry_id}_cost_current_hour"]
+    hour_energy_entity_id = entities[f"{entry.entry_id}_energy_current_hour"]
     last_hour_cost_entity_id = entities[f"{entry.entry_id}_cost_last_hour"]
     last_hour_energy_entity_id = entities[f"{entry.entry_id}_energy_last_hour"]
-    year_cost_entity_id = entities[f"{entry.entry_id}_cost_year"]
-    year_energy_entity_id = entities[f"{entry.entry_id}_energy_year"]
+    year_cost_entity_id = entities[f"{entry.entry_id}_cost_current_year"]
+    year_energy_entity_id = entities[f"{entry.entry_id}_energy_current_year"]
     total_cost_entity_id = entities[f"{entry.entry_id}_cost_total"]
     total_energy_entity_id = entities[f"{entry.entry_id}_energy_total"]
 
@@ -156,15 +156,15 @@ async def test_entity_ids_use_english_keys(hass) -> None:
         == "sensor.lavadora_cost_today"
     )
     assert (
-        entities[f"{entry.entry_id}_cost_today"].original_name == "Coste hoy"
+        entities[f"{entry.entry_id}_cost_today"].original_name == "Coste de hoy"
     )
     assert (
         entities[f"{entry.entry_id}_energy_total"].entity_id
         == "sensor.lavadora_energy_total"
     )
     assert (
-        entities[f"{entry.entry_id}_cost_month"].entity_id
-        == "sensor.lavadora_cost_month"
+        entities[f"{entry.entry_id}_cost_current_billing_period"].entity_id
+        == "sensor.lavadora_cost_current_billing_period"
     )
     assert (
         entities[f"{entry.entry_id}_cost_last_hour"].entity_id

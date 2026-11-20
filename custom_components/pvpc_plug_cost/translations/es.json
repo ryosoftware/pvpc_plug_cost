@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "PVPC Plug Cost",
-        "description": "Crea sensores de coste para un enchufe inteligente. Añade la integración de nuevo para cada enchufe adicional.",
+        "description": "Crea sensores de coste y energía para un enchufe inteligente. Añade la integración de nuevo para cada enchufe adicional.",
         "data": {
           "name": "Nombre",
           "power_entity": "Sensor de potencia",
@@ -12,14 +12,14 @@
           "scan_interval": "Intervalo de muestreo (s)"
         },
         "data_description": {
-          "price_entity": "Precio obtenido del sensor de la integración oficial PVPC Hourly Pricing (`sensor.esios_pvpc`) o de un `input_number` con tarifa fija en €/kWh."
+          "price_entity": "Precio obtenido del sensor de la integración oficial PVPC Hourly Pricing (`sensor.esios_pvpc`) o de un `input_number` con tarifa fija en €/kWh o EUR/kWh."
         }
       }
     },
     "error": {
       "entity_not_found": "La entidad seleccionada no existe.",
       "invalid_power_unit": "El sensor de potencia debe usar W o kW.",
-      "invalid_price_unit": "La entidad de precio debe usar €/kWh."
+      "invalid_price_unit": "La entidad de precio debe usar €/kWh o EUR/kWh."
     },
     "abort": {
       "already_configured": "Esta combinación de sensor de potencia y precio ya está configurada."
@@ -29,7 +29,7 @@
     "step": {
       "init": {
         "title": "Opciones de PVPC Plug Cost",
-        "description": "Cambia las entidades de origen, el día de facturación o el intervalo de muestreo. Cambiar el día de facturación reinicia el acumulado del periodo actual.",
+        "description": "Cambia las entidades de origen, el día de facturación o el intervalo de muestreo. Cambiar el día de facturación reinicia los acumulados del periodo de facturación actual.",
         "data": {
           "power_entity": "Sensor de potencia",
           "price_entity": "Precio PVPC (sensor o input_number)",
@@ -37,23 +37,23 @@
           "scan_interval": "Intervalo de muestreo (s)"
         },
         "data_description": {
-          "price_entity": "Precio obtenido del sensor de la integración oficial PVPC Hourly Pricing (`sensor.esios_pvpc`) o de un `input_number` con tarifa fija en €/kWh."
+          "price_entity": "Precio obtenido del sensor de la integración oficial PVPC Hourly Pricing (`sensor.esios_pvpc`) o de un `input_number` con tarifa fija en €/kWh o EUR/kWh."
         }
       }
     },
     "error": {
       "entity_not_found": "La entidad seleccionada no existe.",
       "invalid_power_unit": "El sensor de potencia debe usar W o kW.",
-      "invalid_price_unit": "La entidad de precio debe usar €/kWh.",
+      "invalid_price_unit": "La entidad de precio debe usar €/kWh o EUR/kWh.",
       "already_configured": "Esta combinación de sensor de potencia y precio ya está configurada."
     }
   },
   "entity": {
     "sensor": {
-      "cost_hour": {
+      "cost_current_hour": {
         "name": "Coste de la hora actual"
       },
-      "energy_hour": {
+      "energy_current_hour": {
         "name": "Energía de la hora actual"
       },
       "cost_last_hour": {
@@ -62,32 +62,32 @@
       "energy_last_hour": {
         "name": "Energía de la última hora completa"
       },
-      "cost_year": {
+      "cost_current_year": {
         "name": "Coste del año actual"
       },
-      "energy_year": {
+      "energy_current_year": {
         "name": "Energía del año actual"
       },
       "cost_today": {
-        "name": "Coste hoy"
-      },
-      "cost_month": {
-        "name": "Coste del periodo de facturación"
+        "name": "Coste de hoy"
       },
       "energy_today": {
-        "name": "Energía hoy"
+        "name": "Energía de hoy"
       },
-      "energy_month": {
-        "name": "Energía del periodo de facturación"
+      "cost_current_billing_period": {
+        "name": "Coste del periodo de facturación actual"
       },
-      "cost_rate": {
-        "name": "Coste actual por hora"
+      "energy_current_billing_period": {
+        "name": "Energía del periodo de facturación actual"
+      },
+      "cost_total": {
+        "name": "Coste total"
       },
       "energy_total": {
         "name": "Energía total"
       },
-      "cost_total": {
-        "name": "Coste total"
+      "cost_rate": {
+        "name": "Coste instantáneo por hora"
       }
     }
   }
