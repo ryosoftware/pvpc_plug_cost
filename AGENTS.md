@@ -60,8 +60,8 @@ One `PVPCCostManager` instance per config entry.
 - Samples on power/price state changes, every configured interval, and every hour.
 - Uses the power and price from the start of the sampling interval for every subsegment; new readings apply from the next sample.
 - Uses UTC for elapsed-time math and local time for hour, day, month and year boundaries. Hour boundaries support whole-hour and half-hour offsets and DST folds. Period-start comparisons are converted to UTC so DST folds are handled correctly.
-- Stores `hour_*`, `last_hour_*`, `day_*`, `month_*`, `year_*` and `total_*` totals plus period starts.
-- `last_hour_*` is promoted only when the hour rollover is observed while running; it is persisted and restored but hours spanning downtime are not reconstructed.
+- Stores `hour_*`, `last_hour_*`, `day_*`, `month_*`, `calendar_month_*`, `last_month_*`, `year_*` and `total_*` totals plus period starts.
+- `last_hour_*` is promoted only when the hour rollover is observed while running; it is persisted and restored but hours spanning downtime are not reconstructed. `last_month_*` follows the same rule while running; on load, a persisted month that is exactly the previous calendar month is promoted, and a staler month is discarded.
 - Lifetime `total_*` counters never reset and are intended for the Energy Dashboard; period counters remain informative.
 - Persists state with `Store` under `pvpc_plug_cost.<entry_id>`.
 - Saves at most once per minute while accumulating and always on Home Assistant shutdown (`EVENT_HOMEASSISTANT_STOP`). Writes are serialized with a lock so the final save cannot be overwritten by an older periodic save.
@@ -71,7 +71,7 @@ One `PVPCCostManager` instance per config entry.
 
 ### `sensor.py`
 
-Thirteen entities:
+Seventeen entities:
 
 | Key | Unit | Device class | State class | Icon |
 |---|---|---|---|---|
@@ -79,6 +79,10 @@ Thirteen entities:
 | `energy_current_hour` | kWh | `energy` | none | `mdi:lightning-bolt` |
 | `cost_last_hour` | € | `monetary` | none | `mdi:currency-eur` |
 | `energy_last_hour` | kWh | `energy` | none | `mdi:lightning-bolt` |
+| `cost_current_month` | € | `monetary` | none | `mdi:currency-eur` |
+| `energy_current_month` | kWh | `energy` | none | `mdi:lightning-bolt` |
+| `cost_last_month` | € | `monetary` | none | `mdi:currency-eur` |
+| `energy_last_month` | kWh | `energy` | none | `mdi:lightning-bolt` |
 | `cost_today` | € | `monetary` | none | `mdi:currency-eur` |
 | `cost_current_billing_period` | € | `monetary` | none | `mdi:currency-eur` |
 | `energy_today` | kWh | `energy` | none | `mdi:lightning-bolt` |
@@ -94,6 +98,8 @@ Thirteen entities:
 Entity IDs use the language-independent description key (`cost_current_hour`, `cost_today`, etc.) via `suggested_object_id`, so new installations get the same entity IDs regardless of the Home Assistant language. Friendly names remain translated.
 
 `cost_last_hour` and `energy_last_hour` show the previous clock hour (for example, at 10:25 the 09:00–10:00 period). They advance only when the rollover is observed while running; they are persisted and restored but do not reconstruct hours spanning downtime.
+
+`cost_current_month` and `energy_current_month` follow the calendar month, independent of the configured billing day. `cost_last_month` and `energy_last_month` show the previous calendar month. While running they are promoted when the month rollover is observed; on load, a persisted current month that is exactly the previous calendar month is promoted, and a staler month is discarded.
 
 Important: invalid Material Design Icons names render as no icon. Do not use `mdi:calendar-currency` or `mdi:calendar-lightning`; they do not exist. Verify new icon names before using them.
 

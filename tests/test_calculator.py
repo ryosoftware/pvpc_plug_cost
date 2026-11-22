@@ -73,6 +73,10 @@ class CalculatorTest(unittest.TestCase):
             datetime(2026, 3, 14, 0, 0, tzinfo=timezone.utc),
         )
         self.assertEqual(
+            calculator.start_of_month(value),
+            datetime(2026, 3, 1, 0, 0, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
             calculator.next_day_start(value),
             datetime(2026, 3, 15, 0, 0, tzinfo=timezone.utc),
         )

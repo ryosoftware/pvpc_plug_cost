@@ -12,7 +12,7 @@ from homeassistant.const import (
 
 DOMAIN: Final = "pvpc_plug_cost"
 NAME: Final = "PVPC Plug Cost"
-VERSION: Final = "1.0.0"
+VERSION: Final = "1.1.0"
 
 CONF_POWER_ENTITY: Final = "power_entity"
 CONF_PRICE_ENTITY: Final = "price_entity"

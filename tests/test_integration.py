@@ -94,6 +94,10 @@ async def test_setup_and_accumulation(hass) -> None:
     hour_energy_entity_id = entities[f"{entry.entry_id}_energy_current_hour"]
     last_hour_cost_entity_id = entities[f"{entry.entry_id}_cost_last_hour"]
     last_hour_energy_entity_id = entities[f"{entry.entry_id}_energy_last_hour"]
+    month_cost_entity_id = entities[f"{entry.entry_id}_cost_current_month"]
+    month_energy_entity_id = entities[f"{entry.entry_id}_energy_current_month"]
+    last_month_cost_entity_id = entities[f"{entry.entry_id}_cost_last_month"]
+    last_month_energy_entity_id = entities[f"{entry.entry_id}_energy_last_month"]
     year_cost_entity_id = entities[f"{entry.entry_id}_cost_current_year"]
     year_energy_entity_id = entities[f"{entry.entry_id}_energy_current_year"]
     total_cost_entity_id = entities[f"{entry.entry_id}_cost_total"]
@@ -116,6 +120,10 @@ async def test_setup_and_accumulation(hass) -> None:
         hour_energy_entity_id,
         last_hour_cost_entity_id,
         last_hour_energy_entity_id,
+        month_cost_entity_id,
+        month_energy_entity_id,
+        last_month_cost_entity_id,
+        last_month_energy_entity_id,
         year_cost_entity_id,
         year_energy_entity_id,
     ):
@@ -128,6 +136,10 @@ async def test_setup_and_accumulation(hass) -> None:
     assert Decimal(hass.states.get(hour_energy_entity_id).state) == Decimal("0.5")
     assert Decimal(hass.states.get(last_hour_cost_entity_id).state) == Decimal("0")
     assert Decimal(hass.states.get(last_hour_energy_entity_id).state) == Decimal("0")
+    assert Decimal(hass.states.get(month_cost_entity_id).state) == Decimal("0.05")
+    assert Decimal(hass.states.get(month_energy_entity_id).state) == Decimal("0.5")
+    assert Decimal(hass.states.get(last_month_cost_entity_id).state) == Decimal("0")
+    assert Decimal(hass.states.get(last_month_energy_entity_id).state) == Decimal("0")
     assert Decimal(hass.states.get(year_cost_entity_id).state) == Decimal("0.05")
     assert Decimal(hass.states.get(year_energy_entity_id).state) == Decimal("0.5")
 
@@ -177,6 +189,26 @@ async def test_entity_ids_use_english_keys(hass) -> None:
     assert (
         entities[f"{entry.entry_id}_energy_last_hour"].original_name
         == "Energía de la última hora completa"
+    )
+    assert (
+        entities[f"{entry.entry_id}_cost_current_month"].entity_id
+        == "sensor.lavadora_cost_current_month"
+    )
+    assert (
+        entities[f"{entry.entry_id}_energy_current_month"].entity_id
+        == "sensor.lavadora_energy_current_month"
+    )
+    assert (
+        entities[f"{entry.entry_id}_cost_last_month"].entity_id
+        == "sensor.lavadora_cost_last_month"
+    )
+    assert (
+        entities[f"{entry.entry_id}_energy_last_month"].entity_id
+        == "sensor.lavadora_energy_last_month"
+    )
+    assert (
+        entities[f"{entry.entry_id}_cost_last_month"].original_name
+        == "Coste del mes anterior"
     )
 
 
@@ -511,6 +543,110 @@ async def test_last_hour_is_persisted_and_restored(hass) -> None:
     assert manager.last_hour_cost == Decimal("0.05")
 
 
+async def test_calendar_month_rollover_promotes_and_resets(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    now = dt_util.now()
+    if now.month == 12:
+        month_start = now.replace(
+            year=now.year + 1,
+            month=1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+    else:
+        month_start = now.replace(
+            month=now.month + 1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+    previous_start = (month_start - timedelta(days=1)).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+    manager._calendar_month_start = previous_start
+    manager._calendar_month_energy = Decimal("1")
+    manager._calendar_month_cost = Decimal("0.10")
+    manager._last_sample = dt_util.as_utc(month_start - timedelta(minutes=30))
+    manager._last_power_kw = Decimal("1")
+    manager._last_price = Decimal("0.10")
+    manager._max_gap = timedelta(hours=2)
+    manager._async_sample(dt_util.as_utc(month_start + timedelta(minutes=30)))
+    await hass.async_block_till_done()
+
+    assert manager.calendar_month_start == month_start
+    assert manager.calendar_month_energy == Decimal("0.5")
+    assert manager.calendar_month_cost == Decimal("0.05")
+    assert manager.last_month_start == previous_start
+    assert manager.last_month_energy == Decimal("1.5")
+    assert manager.last_month_cost == Decimal("0.15")
+
+
+async def test_last_month_is_promoted_on_load(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    current_start = dt_util.now().replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+    previous_start = (current_start - timedelta(days=1)).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+    await manager._store.async_save(
+        {
+            "calendar_month_start": previous_start.isoformat(),
+            "calendar_month_energy": "5",
+            "calendar_month_cost": "1",
+        }
+    )
+    await manager.async_load()
+
+    assert manager.calendar_month_start == current_start
+    assert manager.calendar_month_energy == Decimal("0")
+    assert manager.calendar_month_cost == Decimal("0")
+    assert manager.last_month_start == previous_start
+    assert manager.last_month_energy == Decimal("5")
+    assert manager.last_month_cost == Decimal("1")
+
+
+async def test_stale_stored_month_is_not_promoted(hass) -> None:
+    entry = await _setup_entry(hass)
+    manager = entry.runtime_data
+
+    current_start = dt_util.now().replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+    stale_start = (current_start - timedelta(days=40)).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
+
+    await manager._store.async_save(
+        {
+            "calendar_month_start": stale_start.isoformat(),
+            "calendar_month_energy": "5",
+            "calendar_month_cost": "1",
+            "last_month_start": stale_start.isoformat(),
+            "last_month_energy": "4",
+            "last_month_cost": "0.5",
+        }
+    )
+    await manager.async_load()
+
+    assert manager.calendar_month_start == current_start
+    assert manager.calendar_month_energy == Decimal("0")
+    assert manager.last_month_start is None
+    assert manager.last_month_energy == Decimal("0")
+    assert manager.last_month_cost == Decimal("0")
+
+
 async def test_year_accumulation_resets_at_new_year(hass) -> None:
     entry = await _setup_entry(hass)
     manager = entry.runtime_data
@@ -540,6 +676,8 @@ async def test_year_accumulation_resets_at_new_year(hass) -> None:
     assert manager.year_cost == Decimal("0.05")
     assert manager.day_energy == Decimal("0.5")
     assert manager.month_energy == Decimal("0.5")
+    assert manager.calendar_month_energy == Decimal("0.5")
+    assert manager.calendar_month_cost == Decimal("0.05")
 
 
 async def test_hour_and_year_rollover_reset_totals(hass) -> None:
@@ -737,6 +875,10 @@ async def test_shutdown_saves_latest_totals(hass) -> None:
     assert Decimal(stored["hour_cost"]) == Decimal("0.05")
     assert Decimal(stored["day_energy"]) == Decimal("0.5")
     assert Decimal(stored["day_cost"]) == Decimal("0.05")
+    assert Decimal(stored["calendar_month_energy"]) == Decimal("0.5")
+    assert Decimal(stored["calendar_month_cost"]) == Decimal("0.05")
+    assert Decimal(stored["last_month_energy"]) == Decimal("0")
+    assert Decimal(stored["last_month_cost"]) == Decimal("0")
     assert Decimal(stored["year_energy"]) == Decimal("0.5")
     assert Decimal(stored["year_cost"]) == Decimal("0.05")
     assert Decimal(stored["total_energy"]) == Decimal("0.5")

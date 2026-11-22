@@ -36,6 +36,7 @@ from .calculator import (
     period_boundaries,
     start_of_day,
     start_of_hour,
+    start_of_month,
     start_of_year,
     to_decimal,
 )
@@ -89,6 +90,12 @@ class PVPCCostManager:
         self._month_start: datetime | None = None
         self._month_energy = ZERO
         self._month_cost = ZERO
+        self._calendar_month_start: datetime | None = None
+        self._calendar_month_energy = ZERO
+        self._calendar_month_cost = ZERO
+        self._last_month_start: datetime | None = None
+        self._last_month_energy = ZERO
+        self._last_month_cost = ZERO
         self._year_start: datetime | None = None
         self._year_energy = ZERO
         self._year_cost = ZERO
@@ -173,6 +180,42 @@ class PVPCCostManager:
         """Return the start of the current billing period."""
 
         return self._month_start
+
+    @property
+    def calendar_month_energy(self) -> Decimal:
+        """Return energy accumulated during the current calendar month."""
+
+        return self._calendar_month_energy
+
+    @property
+    def calendar_month_cost(self) -> Decimal:
+        """Return cost accumulated during the current calendar month."""
+
+        return self._calendar_month_cost
+
+    @property
+    def calendar_month_start(self) -> datetime | None:
+        """Return the start of the current calendar month."""
+
+        return self._calendar_month_start
+
+    @property
+    def last_month_energy(self) -> Decimal:
+        """Return energy accumulated during the last completed calendar month."""
+
+        return self._last_month_energy
+
+    @property
+    def last_month_cost(self) -> Decimal:
+        """Return cost accumulated during the last completed calendar month."""
+
+        return self._last_month_cost
+
+    @property
+    def last_month_start(self) -> datetime | None:
+        """Return the start of the last completed calendar month."""
+
+        return self._last_month_start
 
     @property
     def year_energy(self) -> Decimal:
@@ -278,12 +321,31 @@ class PVPCCostManager:
             self._month_start = self._parse_datetime(stored.get("month_start"))
             self._month_energy = to_decimal(stored.get("month_energy")) or ZERO
             self._month_cost = to_decimal(stored.get("month_cost")) or ZERO
+            self._calendar_month_start = self._parse_datetime(
+                stored.get("calendar_month_start")
+            )
+            self._calendar_month_energy = (
+                to_decimal(stored.get("calendar_month_energy")) or ZERO
+            )
+            self._calendar_month_cost = (
+                to_decimal(stored.get("calendar_month_cost")) or ZERO
+            )
+            self._last_month_start = self._parse_datetime(
+                stored.get("last_month_start")
+            )
+            self._last_month_energy = (
+                to_decimal(stored.get("last_month_energy")) or ZERO
+            )
+            self._last_month_cost = (
+                to_decimal(stored.get("last_month_cost")) or ZERO
+            )
             self._year_start = self._parse_datetime(stored.get("year_start"))
             self._year_energy = to_decimal(stored.get("year_energy")) or ZERO
             self._year_cost = to_decimal(stored.get("year_cost")) or ZERO
             self._total_energy = to_decimal(stored.get("total_energy")) or ZERO
             self._total_cost = to_decimal(stored.get("total_cost")) or ZERO
 
+        self._promote_stored_calendar_month(dt_util.now())
         self._ensure_periods(dt_util.now())
 
     async def async_start(self) -> None:
@@ -414,6 +476,7 @@ class PVPCCostManager:
         self._last_power_kw = power
         self._last_price = price if price is not None else previous_price
         self._advance_hour(local_current)
+        self._advance_calendar_month(local_current)
         self._ensure_periods(local_current)
         self._schedule_save()
         self._notify()
@@ -477,15 +540,66 @@ class PVPCCostManager:
         self._hour_energy = ZERO
         self._hour_cost = ZERO
 
+    def _advance_calendar_month(self, local_when: datetime) -> None:
+        """Advance the current calendar month and keep the last completed month."""
+
+        month = start_of_month(local_when)
+        month_key = self._start_key(month)
+        current_key = self._start_key(self._calendar_month_start)
+
+        if current_key is None:
+            self._calendar_month_start = month
+            self._calendar_month_energy = ZERO
+            self._calendar_month_cost = ZERO
+            return
+
+        if month_key == current_key:
+            return
+
+        if month_key is not None and month_key > current_key:
+            self._last_month_start = self._calendar_month_start
+            self._last_month_energy = self._calendar_month_energy
+            self._last_month_cost = self._calendar_month_cost
+
+        self._calendar_month_start = month
+        self._calendar_month_energy = ZERO
+        self._calendar_month_cost = ZERO
+
+    def _promote_stored_calendar_month(self, now: datetime) -> None:
+        """Promote the persisted month when it is the previous calendar month."""
+
+        if self._calendar_month_start is None:
+            return
+
+        current = start_of_month(now)
+        stored_key = self._start_key(self._calendar_month_start)
+        current_key = self._start_key(current)
+        if stored_key is None or current_key is None or stored_key == current_key:
+            return
+
+        previous = start_of_month(current - timedelta(days=1))
+        if stored_key == self._start_key(previous):
+            self._last_month_start = self._calendar_month_start
+            self._last_month_energy = self._calendar_month_energy
+            self._last_month_cost = self._calendar_month_cost
+            return
+
+        self._last_month_start = None
+        self._last_month_energy = ZERO
+        self._last_month_cost = ZERO
+
     def _add_accumulation(self, when: datetime, result: EnergyCost) -> None:
         local_when = dt_util.as_local(when)
         self._advance_hour(local_when)
+        self._advance_calendar_month(local_when)
         day = start_of_day(local_when)
         month = billing_period_start(local_when, self.billing_day)
+        calendar_month = start_of_month(local_when)
         year = start_of_year(local_when)
 
         day_key = dt_util.as_utc(day)
         month_key = dt_util.as_utc(month)
+        calendar_month_key = dt_util.as_utc(calendar_month)
         year_key = dt_util.as_utc(year)
 
         day_start_key = self._start_key(self._day_start)
@@ -520,6 +634,10 @@ class PVPCCostManager:
             self._month_energy += result.energy_kwh
             self._month_cost += result.cost_eur
 
+        if calendar_month_key == self._start_key(self._calendar_month_start):
+            self._calendar_month_energy += result.energy_kwh
+            self._calendar_month_cost += result.cost_eur
+
         if year_key == year_start_key:
             self._year_energy += result.energy_kwh
             self._year_cost += result.cost_eur
@@ -531,6 +649,7 @@ class PVPCCostManager:
         hour = start_of_hour(now)
         day = start_of_day(now)
         month = billing_period_start(now, self.billing_day)
+        calendar_month = start_of_month(now)
         year = start_of_year(now)
 
         if self._start_key(self._hour_start) != self._start_key(hour):
@@ -547,6 +666,13 @@ class PVPCCostManager:
             self._month_start = month
             self._month_energy = ZERO
             self._month_cost = ZERO
+
+        if self._start_key(self._calendar_month_start) != self._start_key(
+            calendar_month
+        ):
+            self._calendar_month_start = calendar_month
+            self._calendar_month_energy = ZERO
+            self._calendar_month_cost = ZERO
 
         if self._start_key(self._year_start) != self._start_key(year):
             self._year_start = year
@@ -588,6 +714,18 @@ class PVPCCostManager:
             ),
             "month_energy": str(self._month_energy),
             "month_cost": str(self._month_cost),
+            "calendar_month_start": (
+                self._calendar_month_start.isoformat()
+                if self._calendar_month_start
+                else None
+            ),
+            "calendar_month_energy": str(self._calendar_month_energy),
+            "calendar_month_cost": str(self._calendar_month_cost),
+            "last_month_start": (
+                self._last_month_start.isoformat() if self._last_month_start else None
+            ),
+            "last_month_energy": str(self._last_month_energy),
+            "last_month_cost": str(self._last_month_cost),
             "year_start": self._year_start.isoformat() if self._year_start else None,
             "year_energy": str(self._year_energy),
             "year_cost": str(self._year_cost),

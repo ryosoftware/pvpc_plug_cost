@@ -85,6 +85,12 @@ def start_of_year(value: datetime) -> datetime:
     )
 
 
+def start_of_month(value: datetime) -> datetime:
+    """Return the start of the calendar month for a local datetime."""
+
+    return value.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
 def start_of_day(value: datetime) -> datetime:
     """Return the start of the calendar day for a local datetime."""
 

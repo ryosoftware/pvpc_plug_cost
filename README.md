@@ -11,6 +11,7 @@ Crea, para cada enchufe, sensores de coste y energía con acumulado diario y por
 - Una entrada de integración por enchufe; puedes añadir tantos como quieras.
 - Sensores independientes por enchufe, agrupados bajo el dispositivo del enchufe.
 - Coste diario y coste del periodo de facturación.
+- Coste y energía del mes natural actual y del mes natural anterior.
 - Energía diaria y energía del periodo de facturación (kWh).
 - Día de facturación configurable, con ajuste automático a meses de 28, 29, 30 o 31 días.
 - Sensor opcional de coste instantáneo en €/h, deshabilitado por defecto.
@@ -55,7 +56,7 @@ Copia la carpeta `custom_components/pvpc_plug_cost` dentro de la carpeta `custom
    - Intervalo de muestreo, por defecto 60 segundos.
 4. Repite el proceso para cada enchufe adicional.
 
-El día de facturación determina cuándo se reinicia el contador mensual. Si eliges un día que no existe en un mes concreto, se usa el último día de ese mes.
+El día de facturación determina cuándo se reinicia el contador mensual. Si eliges un día que no existe en un mes concreto, se usa el último día de ese mes. Si cambias el día de facturación desde las opciones, el periodo de facturación actual empieza de cero con el nuevo día.
 
 ### Tarifa fija
 
@@ -71,6 +72,10 @@ Para una entrada llamada `Lavadora`:
 | `sensor.lavadora_energy_current_hour` | Energía acumulada en la hora en curso |
 | `sensor.lavadora_cost_last_hour` | Coste variable de la última hora completa |
 | `sensor.lavadora_energy_last_hour` | Energía de la última hora completa |
+| `sensor.lavadora_cost_current_month` | Coste variable acumulado en el mes natural actual |
+| `sensor.lavadora_energy_current_month` | Energía acumulada en el mes natural actual |
+| `sensor.lavadora_cost_last_month` | Coste variable del mes natural anterior |
+| `sensor.lavadora_energy_last_month` | Energía del mes natural anterior |
 | `sensor.lavadora_cost_today` | Coste variable acumulado hoy |
 | `sensor.lavadora_cost_current_billing_period` | Coste variable del periodo de facturación |
 | `sensor.lavadora_energy_today` | Energía acumulada hoy |
@@ -85,11 +90,13 @@ El prefijo depende del nombre del dispositivo. Los `entity_id` usan claves en in
 
 `cost_last_hour` y `energy_last_hour` muestran la hora de reloj anterior: a las 10:25, el periodo de 09:00 a 10:00. Solo avanzan cuando Home Assistant observa el cambio de hora mientras está funcionando; si estuvo parado al cruzar la hora, conservan la última hora que sí se completó en marcha. El atributo `last_hour_start` indica el inicio del periodo mostrado.
 
-Cada sensor incluye atributos de diagnóstico: entidad de potencia, entidad de precio, potencia actual, precio actual, coste instantáneo, día de facturación, estado, última muestra e inicio de la última hora completa.
+`cost_current_month` y `energy_current_month` siguen el mes natural, independientemente del día de facturación configurado. `cost_last_month` y `energy_last_month` muestran el mes natural anterior. Mientras Home Assistant está en marcha se actualizan al observar el cambio de mes; al arrancar, si el mes guardado es exactamente el mes anterior, se promueve a último mes y, si es más antiguo, se descarta. El atributo `last_month_start` indica el inicio del mes mostrado.
+
+Cada sensor incluye atributos de diagnóstico: entidad de potencia, entidad de precio, potencia actual, precio actual, coste instantáneo, día de facturación, estado, última muestra, inicio de la última hora completa e inicio del último mes completo.
 
 ## Dashboard de Energía
 
-Los sensores recomendados para el Dashboard son `energy_total` y `cost_total`, porque son acumulados monotónicos y no se reinician. Los sensores de energía y coste por hora, última hora, día, periodo de facturación y año son informativos y no generan estadísticas de largo plazo.
+Los sensores recomendados para el Dashboard son `energy_total` y `cost_total`, porque son acumulados monotónicos y no se reinician. Los sensores de energía y coste por hora, última hora, mes natural actual, mes natural anterior, día, periodo de facturación y año son informativos y no generan estadísticas de largo plazo.
 
 ## Cálculo
 
@@ -111,6 +118,7 @@ Los acumulados empiezan a contar desde el momento en que se configura la integra
 - La potencia y el precio se mantienen hasta la siguiente lectura; no se interpolan. Si el enchufe o el precio cambian con poco detalle, el coste puede desviarse ligeramente, como mucho alrededor de un intervalo de muestreo por cada cambio.
 - No se recupera el consumo ocurrido mientras Home Assistant o el enchufe estuvieron desconectados.
 - No se crea un sensor de total agregado de varios enchufes. Si lo necesitas, puedes crear un sensor de plantilla que sume los sensores de coste individuales.
+- Cambiar el día de facturación reinicia a cero el coste y la energía del periodo de facturación actual. Los acumulados de hora, día, mes natural, año y los totales de por vida se conservan.
 
 ## Desarrollo y pruebas
 

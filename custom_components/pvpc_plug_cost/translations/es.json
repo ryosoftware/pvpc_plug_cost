@@ -62,6 +62,18 @@
       "energy_last_hour": {
         "name": "Energía de la última hora completa"
       },
+      "cost_current_month": {
+        "name": "Coste del mes actual"
+      },
+      "energy_current_month": {
+        "name": "Energía del mes actual"
+      },
+      "cost_last_month": {
+        "name": "Coste del mes anterior"
+      },
+      "energy_last_month": {
+        "name": "Energía del mes anterior"
+      },
       "cost_current_year": {
         "name": "Coste del año actual"
       },

@@ -85,6 +85,46 @@ SENSOR_TYPES: tuple[PVPCCostSensorDescription, ...] = (
         value_fn=lambda manager: manager.last_hour_energy,
     ),
     PVPCCostSensorDescription(
+        key="cost_current_month",
+        translation_key="cost_current_month",
+        native_unit_of_measurement=CURRENCY_EURO,
+        device_class=SensorDeviceClass.MONETARY,
+        state_class=None,
+        suggested_display_precision=4,
+        icon="mdi:currency-eur",
+        value_fn=lambda manager: manager.calendar_month_cost,
+    ),
+    PVPCCostSensorDescription(
+        key="energy_current_month",
+        translation_key="energy_current_month",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=None,
+        suggested_display_precision=3,
+        icon="mdi:lightning-bolt",
+        value_fn=lambda manager: manager.calendar_month_energy,
+    ),
+    PVPCCostSensorDescription(
+        key="cost_last_month",
+        translation_key="cost_last_month",
+        native_unit_of_measurement=CURRENCY_EURO,
+        device_class=SensorDeviceClass.MONETARY,
+        state_class=None,
+        suggested_display_precision=4,
+        icon="mdi:currency-eur",
+        value_fn=lambda manager: manager.last_month_cost,
+    ),
+    PVPCCostSensorDescription(
+        key="energy_last_month",
+        translation_key="energy_last_month",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=None,
+        suggested_display_precision=3,
+        icon="mdi:lightning-bolt",
+        value_fn=lambda manager: manager.last_month_energy,
+    ),
+    PVPCCostSensorDescription(
         key="cost_today",
         translation_key="cost_today",
         native_unit_of_measurement=CURRENCY_EURO,
@@ -264,6 +304,11 @@ class PVPCCostSensor(SensorEntity):
             "last_hour_start": (
                 manager.last_hour_start.isoformat()
                 if manager.last_hour_start
+                else None
+            ),
+            "last_month_start": (
+                manager.last_month_start.isoformat()
+                if manager.last_month_start
                 else None
             ),
             "last_sample": (

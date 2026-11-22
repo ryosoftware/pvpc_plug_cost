@@ -11,6 +11,7 @@ For each plug, it creates cost and energy sensors with daily and billing-period 
 - One integration entry per plug; add as many as you want.
 - Independent sensors per plug, grouped under the plug's device.
 - Daily cost and billing-period cost.
+- Current and previous calendar month cost and energy.
 - Daily energy and billing-period energy (kWh).
 - Configurable billing day, automatically adjusted for 28, 29, 30 or 31-day months.
 - Optional instantaneous cost sensor in €/h, disabled by default.
@@ -55,7 +56,7 @@ Copy the `custom_components/pvpc_plug_cost` folder into the `custom_components` 
    - Sampling interval, 60 seconds by default.
 4. Repeat the process for each additional plug.
 
-The billing day determines when the monthly counter resets. If you choose a day that does not exist in a given month, the last day of that month is used.
+The billing day determines when the monthly counter resets. If you choose a day that does not exist in a given month, the last day of that month is used. If you change the billing day in the options, the current billing period starts over using the new day.
 
 ### Fixed tariff
 
@@ -71,6 +72,10 @@ For an entry named `Washing machine`:
 | `sensor.washing_machine_energy_current_hour` | Energy accumulated in the current hour |
 | `sensor.washing_machine_cost_last_hour` | Variable cost for the last complete hour |
 | `sensor.washing_machine_energy_last_hour` | Energy for the last complete hour |
+| `sensor.washing_machine_cost_current_month` | Variable cost accumulated in the current calendar month |
+| `sensor.washing_machine_energy_current_month` | Energy accumulated in the current calendar month |
+| `sensor.washing_machine_cost_last_month` | Variable cost for the previous calendar month |
+| `sensor.washing_machine_energy_last_month` | Energy for the previous calendar month |
 | `sensor.washing_machine_cost_today` | Variable cost accumulated today |
 | `sensor.washing_machine_cost_current_billing_period` | Variable cost for the billing period |
 | `sensor.washing_machine_energy_today` | Energy accumulated today |
@@ -85,11 +90,13 @@ The prefix depends on the device name. Entity IDs use English keys (`cost_curren
 
 `cost_last_hour` and `energy_last_hour` show the previous clock hour: at 10:25, the 09:00–10:00 period. They only advance when Home Assistant observes the hour change while running; if it was stopped when the hour changed, they keep the last hour that was completed while running. The `last_hour_start` attribute indicates the start of the displayed period.
 
-Each sensor includes diagnostic attributes: power entity, price entity, current power, current price, instantaneous cost, billing day, status, last sample and start of the last complete hour.
+`cost_current_month` and `energy_current_month` follow the calendar month, independent of the configured billing day. `cost_last_month` and `energy_last_month` show the previous calendar month. While Home Assistant is running they advance when the month change is observed; on startup, a persisted month that is exactly the previous month is promoted to last month, and a staler month is discarded. The `last_month_start` attribute indicates the start of the displayed month.
+
+Each sensor includes diagnostic attributes: power entity, price entity, current power, current price, instantaneous cost, billing day, status, last sample, start of the last complete hour and start of the last complete month.
 
 ## Energy Dashboard
 
-The recommended sensors for the Dashboard are `energy_total` and `cost_total`, because they are monotonic totals and do not reset. The energy and cost sensors for the current hour, last hour, day, billing period and year are informational and do not generate long-term statistics.
+The recommended sensors for the Dashboard are `energy_total` and `cost_total`, because they are monotonic totals and do not reset. The energy and cost sensors for the current hour, last hour, current calendar month, previous calendar month, day, billing period and year are informational and do not generate long-term statistics.
 
 ## Calculation
 
@@ -111,6 +118,7 @@ Totals start counting from the moment the integration is configured. Consumption
 - Power and price are held until the next reading; they are not interpolated. If the plug or price changes with little detail, the cost may drift slightly, at most about one sampling interval per change.
 - Consumption that occurred while Home Assistant or the plug was disconnected is not recovered.
 - No aggregate total sensor for multiple plugs is created. If you need one, you can create a template sensor that sums the individual cost sensors.
+- Changing the billing day resets the current billing-period cost and energy to zero. Hour, day, calendar month, year and lifetime totals are preserved.
 
 ## Development and testing
 
